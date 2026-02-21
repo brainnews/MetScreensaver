@@ -1,0 +1,29 @@
+BUILD_DIR    = build
+SAVER_NAME   = MetScreensaver.saver
+SAVER_PATH   = $(BUILD_DIR)/Release/$(SAVER_NAME)
+INSTALL_DIR  = $(HOME)/Library/Screen Savers
+INSTALL_PATH = $(INSTALL_DIR)/$(SAVER_NAME)
+
+.PHONY: build install open clean
+
+build:
+	xcodebuild \
+		-project MetScreensaver.xcodeproj \
+		-target MetScreensaver \
+		-configuration Release \
+		SYMROOT=$(PWD)/$(BUILD_DIR) \
+		build
+
+install: build
+	mkdir -p "$(INSTALL_DIR)"
+	rm -rf "$(INSTALL_PATH)"
+	cp -r "$(SAVER_PATH)" "$(INSTALL_PATH)"
+	-killall ScreenSaverEngine 2>/dev/null
+	-killall legacyScreenSaver 2>/dev/null
+	@echo "Installed to $(INSTALL_PATH)"
+
+open:
+	open "x-apple.systempreferences:com.apple.preference.desktopscreensaver"
+
+clean:
+	rm -rf $(BUILD_DIR)
