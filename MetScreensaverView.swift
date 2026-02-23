@@ -118,12 +118,17 @@ class MetScreensaverView: ScreenSaverView {
     private static let slideInterval: TimeInterval = 20
 
     private var artworkView: ArtworkImageView!
-    private var gradientLayer: CAGradientLayer!
     private var titleLabel: NSTextField!
     private var artistLabel: NSTextField!
     private var infoLabel: NSTextField!
+    private var loadingLabel: NSTextField!
     private var timer: Timer?
     private var fetchTask: Task<Void, Never>?
+    private var prefetchTask: Task<Void, Never>?
+
+    // Next slide ready to display without waiting (main-thread only)
+    private var preloadedArtwork: MetArtwork?
+    private var preloadedImage: NSImage?
 
     // MARK: Init
 
@@ -152,21 +157,7 @@ class MetScreensaverView: ScreenSaverView {
         artworkView.autoresizingMask = [.width, .height]
         addSubview(artworkView)
 
-        // 2. Full-screen bottom gradient (general vignette)
-        let gradientHost = NSView(frame: bounds)
-        gradientHost.wantsLayer = true
-        gradientHost.autoresizingMask = [.width, .height]
-
-        gradientLayer = CAGradientLayer()
-        // bottom (location 0) → dark, fading to clear by 40% up the screen
-        gradientLayer.colors    = [NSColor(white: 0, alpha: 0.88).cgColor, NSColor.clear.cgColor]
-        gradientLayer.locations = [0.0, 0.20]
-        gradientLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
-        gradientLayer.frame = bounds
-        gradientHost.layer?.addSublayer(gradientLayer)
-        addSubview(gradientHost)
-
-        // 3. Labels
+        // 2. Labels
         titleLabel  = makeLabel(size: 20 * scale, alpha: 1.00, weight: .semibold, serif: true)
         artistLabel = makeLabel(size: 14 * scale, alpha: 0.85, weight: .regular,  serif: true)
         infoLabel   = makeLabel(size: 14 * scale, alpha: 0.60, weight: .regular,  serif: true)
@@ -174,6 +165,19 @@ class MetScreensaverView: ScreenSaverView {
         for lbl in [titleLabel!, artistLabel!, infoLabel!] { addSubview(lbl) }
 
         layoutText(padding: pad, scale: scale)
+
+        // 3. Loading label – centered, visible until first image arrives
+        loadingLabel = NSTextField()
+        loadingLabel.stringValue     = "Loading artwork from The Met…"
+        loadingLabel.alignment       = .center
+        loadingLabel.textColor       = NSColor(white: 1, alpha: 0.5)
+        loadingLabel.font            = NSFont.systemFont(ofSize: 13 * scale, weight: .regular)
+        loadingLabel.isBordered      = false
+        loadingLabel.isEditable      = false
+        loadingLabel.drawsBackground = false
+        loadingLabel.autoresizingMask = [.width, .minYMargin, .maxYMargin]
+        loadingLabel.frame = NSRect(x: 0, y: bounds.midY - 10 * scale, width: bounds.width, height: 20 * scale)
+        addSubview(loadingLabel)
     }
 
     private func makeLabel(size: CGFloat, alpha: CGFloat, weight: NSFont.Weight, serif: Bool) -> NSTextField {
@@ -231,6 +235,10 @@ class MetScreensaverView: ScreenSaverView {
         timer = nil
         fetchTask?.cancel()
         fetchTask = nil
+        prefetchTask?.cancel()
+        prefetchTask = nil
+        preloadedArtwork = nil
+        preloadedImage = nil
     }
 
     @objc private func timerFired() { fetchAndDisplay() }
@@ -239,13 +247,47 @@ class MetScreensaverView: ScreenSaverView {
 
     private func fetchAndDisplay() {
         fetchTask?.cancel()
+
+        // If a prefetch already completed, display it instantly — no black screen
+        if let artwork = preloadedArtwork {
+            let image = preloadedImage
+            preloadedArtwork = nil
+            preloadedImage = nil
+            present(artwork: artwork, image: image)
+            startPrefetch()
+            return
+        }
+
+        // Nothing preloaded yet (first slide, or prefetch lost the race) — show loading feedback
+        loadingLabel.isHidden = false
         fetchTask = Task { [weak self] in
             guard let self else { return }
             guard let artwork = try? await MetAPI.shared.fetchRandomArtwork() else { return }
             guard !Task.isCancelled else { return }
             let image = await loadImage(from: artwork.imageURL)
             guard !Task.isCancelled else { return }
-            await MainActor.run { self.present(artwork: artwork, image: image) }
+            await MainActor.run {
+                self.present(artwork: artwork, image: image)
+                self.startPrefetch()
+            }
+        }
+    }
+
+    // Fetch the next slide in the background while the current one is visible.
+    // Gives the full slideInterval (~20 s) to download, so the next slide is
+    // ready before the timer fires.
+    private func startPrefetch() {
+        prefetchTask?.cancel()
+        prefetchTask = Task { [weak self] in
+            guard let self else { return }
+            guard let artwork = try? await MetAPI.shared.fetchRandomArtwork() else { return }
+            guard !Task.isCancelled else { return }
+            let image = await self.loadImage(from: artwork.imageURL)
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak self] in
+                self?.preloadedArtwork = artwork
+                self?.preloadedImage   = image
+            }
         }
     }
 
@@ -277,6 +319,9 @@ class MetScreensaverView: ScreenSaverView {
                 if !artwork.date.isEmpty       { parts.append(artwork.date) }
                 if !artwork.department.isEmpty { parts.append(artwork.department) }
                 self.infoLabel.stringValue = parts.joined(separator: "  ·  ")
+
+                // Hide loading label once we have real content
+                self.loadingLabel.isHidden = true
 
                 NSAnimationContext.runAnimationGroup { ctx in
                     ctx.duration = 1.5
