@@ -201,6 +201,12 @@ class MetScreensaverView: ScreenSaverView {
         artistLabel = makeLabel(size: 14 * scale, alpha: 0.85, weight: .regular,  serif: true)
         infoLabel   = makeLabel(size: 14 * scale, alpha: 0.60, weight: .regular,  serif: true)
 
+        // Title can wrap up to 3 lines
+        titleLabel.maximumNumberOfLines          = 3
+        titleLabel.cell?.wraps                   = true
+        titleLabel.cell?.lineBreakMode           = .byWordWrapping
+        titleLabel.cell?.truncatesLastVisibleLine = true
+
         for lbl in [titleLabel!, artistLabel!, infoLabel!] { addSubview(lbl) }
 
         layoutText(padding: pad, scale: scale)
@@ -245,13 +251,14 @@ class MetScreensaverView: ScreenSaverView {
     }
 
     private func layoutText(padding: CGFloat, scale: CGFloat) {
-        let w     = min(bounds.width - padding * 2, bounds.width / 3)
-        let lineH = 28 * scale
-        let gap   = 5  * scale
+        let w      = min(bounds.width - padding * 2, bounds.width / 3)
+        let lineH  = 28 * scale
+        let gap    = 5  * scale
+        let titleH = lineH * 3  // room for up to 3 wrapped lines
 
         infoLabel.frame   = NSRect(x: padding, y: padding,                        width: w, height: lineH)
         artistLabel.frame = NSRect(x: padding, y: padding + lineH + gap,          width: w, height: lineH)
-        titleLabel.frame  = NSRect(x: padding, y: padding + (lineH + gap) * 2,    width: w, height: lineH * 1.5)
+        titleLabel.frame  = NSRect(x: padding, y: padding + (lineH + gap) * 2,    width: w, height: titleH)
     }
 
     // MARK: ScreenSaverView
