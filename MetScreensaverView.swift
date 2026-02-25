@@ -1,6 +1,29 @@
 import ScreenSaver
 import AppKit
 
+// MARK: - Helpers
+
+/// Set layer properties without triggering implicit animations.
+private func withoutAnimation(_ block: () -> Void) {
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    block()
+    CATransaction.commit()
+}
+
+/// Shared layout constants, scaled for preview vs full-screen.
+private struct Layout {
+    let padding:    CGFloat
+    let lineHeight: CGFloat
+    let gap:        CGFloat
+
+    init(scale: CGFloat) {
+        padding    = 30 * scale
+        lineHeight = 28 * scale
+        gap        =  5 * scale
+    }
+}
+
 // MARK: - Aspect-Fill + Panning Image View
 
 private class ArtworkImageView: NSView {
@@ -30,12 +53,7 @@ private class ArtworkImageView: NSView {
 
     func display(image: NSImage?) {
         imageLayer.removeAllAnimations()
-
-        // Reset model transform left over from any previous animation
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        imageLayer.transform = CATransform3DIdentity
-        CATransaction.commit()
+        withoutAnimation { imageLayer.transform = CATransform3DIdentity }
 
         guard let image,
               image.size.width > 0, image.size.height > 0,
@@ -110,11 +128,7 @@ private class ArtworkImageView: NSView {
         let ex = bex - padOffX
         let ey = bey - padOffY
 
-        // Place layer at start position without any implicit animation
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        imageLayer.frame = CGRect(x: sx, y: sy, width: scaledW, height: scaledH)
-        CATransaction.commit()
+        withoutAnimation { imageLayer.frame = CGRect(x: sx, y: sy, width: scaledW, height: scaledH) }
 
         // Zoom animation (always applied)
         let zoomAnim = CABasicAnimation(keyPath: "transform.scale")
@@ -123,11 +137,7 @@ private class ArtworkImageView: NSView {
         zoomAnim.duration        = panDuration
         zoomAnim.timingFunction  = CAMediaTimingFunction(name: .easeInEaseOut)
         imageLayer.add(zoomAnim, forKey: "zoom")
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        imageLayer.transform = CATransform3DMakeScale(endScale, endScale, 1)
-        CATransaction.commit()
+        withoutAnimation { imageLayer.transform = CATransform3DMakeScale(endScale, endScale, 1) }
 
         // Pan animation (only when there is meaningful movement)
         guard sx != ex || sy != ey else { return }
@@ -141,11 +151,7 @@ private class ArtworkImageView: NSView {
         panAnim.duration       = panDuration
         panAnim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         imageLayer.add(panAnim, forKey: "pan")
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        imageLayer.position = endCenter
-        CATransaction.commit()
+        withoutAnimation { imageLayer.position = endCenter }
     }
 }
 
@@ -161,7 +167,7 @@ class MetScreensaverView: ScreenSaverView {
     private var artistLabel: NSTextField!
     private var infoLabel: NSTextField!
     private var loadingLabel: NSTextField!
-    private var layoutScale: CGFloat = 1.0  // stored for title height remeasurement
+    private var layout = Layout(scale: 1.0)  // stored for title height remeasurement
     private var timer: Timer?
     private var fetchTask: Task<Void, Never>?
     private var prefetchTask: Task<Void, Never>?
@@ -189,8 +195,7 @@ class MetScreensaverView: ScreenSaverView {
         layer?.backgroundColor = NSColor.black.cgColor
 
         let scale: CGFloat = isPreview ? 0.42 : 1.0
-        layoutScale = scale
-        let pad: CGFloat   = 30 * scale
+        layout = Layout(scale: scale)
 
         // 1. Artwork view
         artworkView = ArtworkImageView(frame: bounds)
@@ -211,7 +216,7 @@ class MetScreensaverView: ScreenSaverView {
 
         for lbl in [titleLabel!, artistLabel!, infoLabel!] { addSubview(lbl) }
 
-        layoutText(padding: pad, scale: scale)
+        layoutText()
 
         // 3. Loading label – centered, visible until first image arrives
         loadingLabel = NSTextField()
@@ -252,27 +257,26 @@ class MetScreensaverView: ScreenSaverView {
         return tf
     }
 
-    private func layoutText(padding: CGFloat, scale: CGFloat) {
-        let w      = min(bounds.width - padding * 2, bounds.width / 3)
-        let lineH  = 28 * scale
-        let gap    = 5  * scale
-        let titleH = lineH * 3  // maximum height (3 lines)
+    private func layoutText() {
+        let pad   = layout.padding
+        let lineH = layout.lineHeight
+        let gap   = layout.gap
+        let w     = min(bounds.width - pad * 2, bounds.width / 3)
 
-        infoLabel.frame   = NSRect(x: padding, y: padding,                        width: w, height: lineH)
-        artistLabel.frame = NSRect(x: padding, y: padding + lineH + gap,          width: w, height: lineH)
-        titleLabel.frame  = NSRect(x: padding, y: padding + (lineH + gap) * 2,    width: w, height: titleH)
+        infoLabel.frame   = NSRect(x: pad, y: pad,                            width: w, height: lineH)
+        artistLabel.frame = NSRect(x: pad, y: pad + lineH + gap,              width: w, height: lineH)
+        titleLabel.frame  = NSRect(x: pad, y: pad + (lineH + gap) * 2,        width: w, height: lineH * 3)
     }
 
     // After setting the title string, shrink the frame to fit the actual text
     // (max 3 lines) and keep its bottom edge fixed so it sits flush above the
     // artist label with no extra gap.
     private func relayoutTitle() {
-        let scale  = layoutScale
-        let pad    = 30 * scale
-        let lineH  = 28 * scale
-        let gap    = 5  * scale
-        let w      = titleLabel.frame.width
-        let maxH   = lineH * 3
+        let pad     = layout.padding
+        let lineH   = layout.lineHeight
+        let gap     = layout.gap
+        let w       = titleLabel.frame.width
+        let maxH    = lineH * 3
         let bottomY = pad + (lineH + gap) * 2  // fixed bottom edge
 
         let measured = titleLabel.sizeThatFits(NSSize(width: w, height: maxH))
