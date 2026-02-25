@@ -31,6 +31,12 @@ private class ArtworkImageView: NSView {
     func display(image: NSImage?) {
         imageLayer.removeAllAnimations()
 
+        // Reset model transform left over from any previous animation
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        imageLayer.transform = CATransform3DIdentity
+        CATransaction.commit()
+
         guard let image,
               image.size.width > 0, image.size.height > 0,
               let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
@@ -47,41 +53,62 @@ private class ArtworkImageView: NSView {
         let imgA  = image.size.width / image.size.height
         let viewA = vs.width / vs.height
 
-        let scaledW: CGFloat
-        let scaledH: CGFloat
+        // Base aspect-fill size
+        let baseW: CGFloat
+        let baseH: CGFloat
         if imgA > viewA {
-            scaledH = vs.height
-            scaledW = scaledH * imgA
+            baseH = vs.height
+            baseW = baseH * imgA
         } else {
-            scaledW = vs.width
-            scaledH = scaledW / imgA
+            baseW = vs.width
+            baseH = baseW / imgA
         }
 
-        let excessW = max(0, scaledW - vs.width)
-        let excessH = max(0, scaledH - vs.height)
+        // Zoom in:  frame at fill size,       scale 1.0 → zoomFactor (content grows, always covers)
+        // Zoom out: frame at fill×zoomFactor, scale 1.0 → 1/zoomFactor (shrinks back to fill, still covers)
+        let zoomFactor: CGFloat = 1.08
+        let zoomIn      = Bool.random()
+        let sizeMult    = zoomIn ? 1.0 : zoomFactor
+        let endScale    = zoomIn ? zoomFactor : (1.0 / zoomFactor)
+
+        let scaledW = baseW * sizeMult
+        let scaledH = baseH * sizeMult
+
+        // Extra padding per side introduced by the zoom-out pre-sizing
+        let padOffX = (scaledW - baseW) / 2
+        let padOffY = (scaledH - baseH) / 2
+
+        // Pan direction and amount driven by base fill, unaffected by zoom
+        let baseExcessW = max(0, baseW - vs.width)
+        let baseExcessH = max(0, baseH - vs.height)
         let minPan: CGFloat = 10.0
 
-        // Determine start and end origins for the pan
-        let sx: CGFloat, sy: CGFloat, ex: CGFloat, ey: CGFloat
+        let bsx: CGFloat, bsy: CGFloat, bex: CGFloat, bey: CGFloat
 
-        if imgA > viewA && excessW > minPan {
+        if imgA > viewA && baseExcessW > minPan {
             // Wider image – pan horizontally
             let panLeft = Bool.random()
-            sx = panLeft ? 0 : -excessW
-            ex = panLeft ? -excessW : 0
-            sy = 0; ey = 0
-        } else if imgA <= viewA && excessH > minPan {
+            bsx = panLeft ? 0 : -baseExcessW
+            bex = panLeft ? -baseExcessW : 0
+            bsy = 0; bey = 0
+        } else if imgA <= viewA && baseExcessH > minPan {
             // Taller image – pan vertically
             let panDown = Bool.random()
-            sx = 0; ex = 0
-            sy = panDown ? 0 : -excessH
-            ey = panDown ? -excessH : 0
+            bsx = 0; bex = 0
+            bsy = panDown ? 0 : -baseExcessH
+            bey = panDown ? -baseExcessH : 0
         } else {
-            // Nearly square relative to viewport – center, no pan
-            sx = (vs.width  - scaledW) / 2
-            sy = (vs.height - scaledH) / 2
-            ex = sx; ey = sy
+            // Nearly square – center, no pan (zoom only)
+            bsx = (vs.width  - baseW) / 2
+            bsy = (vs.height - baseH) / 2
+            bex = bsx; bey = bsy
         }
+
+        // Shift frame origins so the padded layer is centered at the same spot as base fill
+        let sx = bsx - padOffX
+        let sy = bsy - padOffY
+        let ex = bex - padOffX
+        let ey = bey - padOffY
 
         // Place layer at start position without any implicit animation
         CATransaction.begin()
@@ -89,20 +116,32 @@ private class ArtworkImageView: NSView {
         imageLayer.frame = CGRect(x: sx, y: sy, width: scaledW, height: scaledH)
         CATransaction.commit()
 
+        // Zoom animation (always applied)
+        let zoomAnim = CABasicAnimation(keyPath: "transform.scale")
+        zoomAnim.fromValue       = 1.0
+        zoomAnim.toValue         = endScale
+        zoomAnim.duration        = panDuration
+        zoomAnim.timingFunction  = CAMediaTimingFunction(name: .easeInEaseOut)
+        imageLayer.add(zoomAnim, forKey: "zoom")
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        imageLayer.transform = CATransform3DMakeScale(endScale, endScale, 1)
+        CATransaction.commit()
+
+        // Pan animation (only when there is meaningful movement)
         guard sx != ex || sy != ey else { return }
 
-        // Add explicit pan animation
         let startCenter = CGPoint(x: sx + scaledW / 2, y: sy + scaledH / 2)
         let endCenter   = CGPoint(x: ex + scaledW / 2, y: ey + scaledH / 2)
 
-        let anim = CABasicAnimation(keyPath: "position")
-        anim.fromValue = startCenter
-        anim.toValue   = endCenter
-        anim.duration  = panDuration
-        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        imageLayer.add(anim, forKey: "pan")
+        let panAnim = CABasicAnimation(keyPath: "position")
+        panAnim.fromValue      = startCenter
+        panAnim.toValue        = endCenter
+        panAnim.duration       = panDuration
+        panAnim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        imageLayer.add(panAnim, forKey: "pan")
 
-        // Advance model to end so the layer stays put after the animation
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         imageLayer.position = endCenter
