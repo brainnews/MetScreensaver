@@ -161,6 +161,7 @@ class MetScreensaverView: ScreenSaverView {
     private var artistLabel: NSTextField!
     private var infoLabel: NSTextField!
     private var loadingLabel: NSTextField!
+    private var layoutScale: CGFloat = 1.0  // stored for title height remeasurement
     private var timer: Timer?
     private var fetchTask: Task<Void, Never>?
     private var prefetchTask: Task<Void, Never>?
@@ -188,6 +189,7 @@ class MetScreensaverView: ScreenSaverView {
         layer?.backgroundColor = NSColor.black.cgColor
 
         let scale: CGFloat = isPreview ? 0.42 : 1.0
+        layoutScale = scale
         let pad: CGFloat   = 30 * scale
 
         // 1. Artwork view
@@ -254,11 +256,28 @@ class MetScreensaverView: ScreenSaverView {
         let w      = min(bounds.width - padding * 2, bounds.width / 3)
         let lineH  = 28 * scale
         let gap    = 5  * scale
-        let titleH = lineH * 3  // room for up to 3 wrapped lines
+        let titleH = lineH * 3  // maximum height (3 lines)
 
         infoLabel.frame   = NSRect(x: padding, y: padding,                        width: w, height: lineH)
         artistLabel.frame = NSRect(x: padding, y: padding + lineH + gap,          width: w, height: lineH)
         titleLabel.frame  = NSRect(x: padding, y: padding + (lineH + gap) * 2,    width: w, height: titleH)
+    }
+
+    // After setting the title string, shrink the frame to fit the actual text
+    // (max 3 lines) and keep its bottom edge fixed so it sits flush above the
+    // artist label with no extra gap.
+    private func relayoutTitle() {
+        let scale  = layoutScale
+        let pad    = 30 * scale
+        let lineH  = 28 * scale
+        let gap    = 5  * scale
+        let w      = titleLabel.frame.width
+        let maxH   = lineH * 3
+        let bottomY = pad + (lineH + gap) * 2  // fixed bottom edge
+
+        let measured = titleLabel.sizeThatFits(NSSize(width: w, height: maxH))
+        let titleH   = min(max(measured.height, lineH), maxH)
+        titleLabel.frame = NSRect(x: pad, y: bottomY, width: w, height: titleH)
     }
 
     // MARK: ScreenSaverView
@@ -360,6 +379,7 @@ class MetScreensaverView: ScreenSaverView {
                 // Update content while everything is invisible
                 self.artworkView.display(image: image)
                 self.titleLabel.stringValue  = artwork.title
+                self.relayoutTitle()
                 self.artistLabel.stringValue = artwork.artist.isEmpty ? "Unknown Artist" : artwork.artist
                 var parts: [String] = []
                 if !artwork.date.isEmpty       { parts.append(artwork.date) }
