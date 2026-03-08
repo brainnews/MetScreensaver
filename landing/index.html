@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MetScreensaver — The Met on your Mac</title>
+  <title>MetSaver — The Met on your Mac</title>
   <meta name="description" content="A free macOS screensaver that cycles through highlighted artworks from The Metropolitan Museum of Art with Ken Burns animations.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -660,7 +660,7 @@
   <div class="hero-content">
     <h1 class="hero-title">The Unofficial<br>Met Screensaver</h1>
     <div class="hero-cta">
-      <a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.1/MetScreensaver.dmg"
+      <a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.dmg"
          class="btn-primary" id="download-btn">Download now</a>
     </div>
   </div>
@@ -680,21 +680,25 @@
     <p class="section-sub fade-in">Over 2,500 highlighted works from The Met's permanent collection, beautifully animated and always current.</p>
 
     <div class="download-box fade-in" id="install">
-      <h3 id="install-heading">Download MetScreensaver</h3>
-      <p id="install-sub">Install in three easy steps.</p>
+      <h3 id="install-heading">Download MetSaver</h3>
+      <p id="install-sub">Install in four easy steps.</p>
 
       <div class="install-row" id="install-row">
         <div class="install-step" id="install-step-download">
           <span class="step-num">1</span>
-          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.1/MetScreensaver.dmg">Download MetScreensaver.dmg</a></p>
+          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.dmg">Download MetSaver.dmg</a></p>
         </div>
         <div class="install-step">
           <span class="step-num">2</span>
-          <p><strong>Double-click MetScreensaver.dmg</strong> — macOS will block it.</p>
+          <p><strong>Double-click MetSaver.dmg</strong> — macOS will block it.</p>
         </div>
         <div class="install-step">
           <span class="step-num">3</span>
           <p>Dismiss the warning. Open <strong>System Settings → Privacy &amp; Security</strong>, scroll to Security, and click <strong>Open Anyway</strong>.</p>
+        </div>
+        <div class="install-step">
+          <span class="step-num">4</span>
+          <p>Open <strong>System Settings → Screen Saver</strong>, find <strong>MetSaver</strong> in the list, and click it to set it as your screensaver.</p>
         </div>
       </div>
 
@@ -724,7 +728,7 @@
   'use strict';
 
   // ── Configuration (mirrors Swift constants) ────────────────
-  const SLIDE_INTERVAL   = 20000;   // 20s — MetScreensaverView.slideInterval
+  const SLIDE_INTERVAL   = 20000;   // 20s — MetSaverView.slideInterval
   const FADE_DURATION_MS = 1500;    // 1.5s — NSAnimationContext duration
   const ZOOM_FACTOR      = 1.08;    // ArtworkImageView zoomFactor
   const PAN_DURATION_S   = SLIDE_INTERVAL / 1000;  // pan runs the full slide duration
@@ -985,13 +989,13 @@
     const downloadStep = document.getElementById('install-step-download');
     if (downloaded) {
       installHeading.textContent  = 'Thanks for downloading';
-      installSub.textContent      = 'Let\'s get started';
+      installSub.textContent      = 'Three steps to go.';
       downloadStep.style.display  = 'none';
       // Renumber remaining steps to 1, 2
       document.querySelectorAll('#install-row .install-step:not(#install-step-download) .step-num')
         .forEach((el, i) => { el.textContent = i + 1; });
     } else {
-      installHeading.textContent  = 'Download the Unofficial Met Screensaver';
+      installHeading.textContent  = 'Download MetSaver';
       installSub.textContent      = 'Follow the steps below to get started';
       downloadStep.style.display  = '';
       // Restore original step numbers
