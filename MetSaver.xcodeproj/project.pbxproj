@@ -10,6 +10,7 @@
 		AA000000AA000000AA000020 /* MetAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000010 /* MetAPI.swift */; };
 		AA000000AA000000AA000021 /* MetSaverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000011 /* MetSaverView.swift */; };
 		AA000000AA000000AA000023 /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000013 /* ScreenSaver.framework */; };
+		AA000000AA000000AA000024 /* thumbnail.png in Resources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000016 /* thumbnail.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,6 +18,7 @@
 		AA000000AA000000AA000011 /* MetSaverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetSaverView.swift; sourceTree = SOURCE_ROOT; };
 		AA000000AA000000AA000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		AA000000AA000000AA000015 /* MetSaver.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MetSaver.entitlements; sourceTree = SOURCE_ROOT; };
+		AA000000AA000000AA000016 /* thumbnail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thumbnail.png; sourceTree = SOURCE_ROOT; };
 		AA000000AA000000AA000013 /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
 		AA000000AA000000AA000014 /* MetSaver.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MetSaver.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -49,6 +51,7 @@
 				AA000000AA000000AA000011 /* MetSaverView.swift */,
 				AA000000AA000000AA000012 /* Info.plist */,
 				AA000000AA000000AA000015 /* MetSaver.entitlements */,
+				AA000000AA000000AA000016 /* thumbnail.png */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -122,6 +125,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA000000AA000000AA000024 /* thumbnail.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
