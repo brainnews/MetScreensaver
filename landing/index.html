@@ -681,24 +681,24 @@
 
     <div class="download-box fade-in" id="install">
       <h3 id="install-heading">Download MetSaver</h3>
-      <p id="install-sub">Install in three easy steps.</p>
+      <p id="install-sub">Install in four easy steps.</p>
 
       <div class="install-row" id="install-row">
         <div class="install-step" id="install-step-download">
           <span class="step-num">1</span>
-          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip">Download MetSaver.dmg</a></p>
+          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip">Download MetSaver.zip</a>, unzip it, and double-click <strong>MetSaver.saver</strong> — macOS will prompt you to install.</p>
         </div>
         <div class="install-step">
           <span class="step-num">2</span>
-          <p><strong>Double-click MetSaver.dmg</strong> — macOS will block it.</p>
+          <p>Click <strong>Install</strong> — macOS opens Screen Saver settings automatically.</p>
         </div>
         <div class="install-step">
           <span class="step-num">3</span>
-          <p>Dismiss the warning. Open <strong>System Settings → Privacy &amp; Security</strong>, scroll to Security, and click <strong>Open Anyway</strong>.</p>
+          <p>Gatekeeper blocks MetSaver. Open <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</p>
         </div>
         <div class="install-step">
           <span class="step-num">4</span>
-          <p>Open <strong>System Settings → Screen Saver</strong>, find <strong>MetSaver</strong> in the list, and click it to set it as your screensaver.</p>
+          <p>Return to <strong>System Settings → Screen Saver</strong> and click <strong>MetSaver</strong> to select it.</p>
         </div>
       </div>
 
@@ -989,7 +989,7 @@
     const downloadStep = document.getElementById('install-step-download');
     if (downloaded) {
       installHeading.textContent  = 'Thanks for downloading';
-      installSub.textContent      = 'Two steps to go.';
+      installSub.textContent      = 'Three steps to go.';
       downloadStep.style.display  = 'none';
       // Renumber remaining steps to 1, 2
       document.querySelectorAll('#install-row .install-step:not(#install-step-download) .step-num')
