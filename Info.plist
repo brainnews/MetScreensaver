@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>NSPrincipalClass</key>
-	<string>MetScreensaverView</string>
+	<string>MetSaverView</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.miles.MetScreensaver</string>
+	<string>com.miles.MetSaver</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleName</key>
-	<string>MetScreensaver</string>
+	<string>MetSaver</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>

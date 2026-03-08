@@ -8,17 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		AA000000AA000000AA000020 /* MetAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000010 /* MetAPI.swift */; };
-		AA000000AA000000AA000021 /* MetScreensaverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000011 /* MetScreensaverView.swift */; };
+		AA000000AA000000AA000021 /* MetSaverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000011 /* MetSaverView.swift */; };
 		AA000000AA000000AA000023 /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000000AA000000AA000013 /* ScreenSaver.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA000000AA000000AA000010 /* MetAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetAPI.swift; sourceTree = SOURCE_ROOT; };
-		AA000000AA000000AA000011 /* MetScreensaverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetScreensaverView.swift; sourceTree = SOURCE_ROOT; };
+		AA000000AA000000AA000011 /* MetSaverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetSaverView.swift; sourceTree = SOURCE_ROOT; };
 		AA000000AA000000AA000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
-		AA000000AA000000AA000015 /* MetScreensaver.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MetScreensaver.entitlements; sourceTree = SOURCE_ROOT; };
+		AA000000AA000000AA000015 /* MetSaver.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MetSaver.entitlements; sourceTree = SOURCE_ROOT; };
 		AA000000AA000000AA000013 /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = System/Library/Frameworks/ScreenSaver.framework; sourceTree = SDKROOT; };
-		AA000000AA000000AA000014 /* MetScreensaver.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MetScreensaver.saver; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000000AA000000AA000014 /* MetSaver.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MetSaver.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,7 +33,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AA000000AA000000AA000002 /* MetScreensaver */ = {
+		AA000000AA000000AA000002 /* MetSaver */ = {
 			isa = PBXGroup;
 			children = (
 				AA000000AA000000AA000003 /* Sources */,
@@ -46,9 +46,9 @@
 			isa = PBXGroup;
 			children = (
 				AA000000AA000000AA000010 /* MetAPI.swift */,
-				AA000000AA000000AA000011 /* MetScreensaverView.swift */,
+				AA000000AA000000AA000011 /* MetSaverView.swift */,
 				AA000000AA000000AA000012 /* Info.plist */,
-				AA000000AA000000AA000015 /* MetScreensaver.entitlements */,
+				AA000000AA000000AA000015 /* MetSaver.entitlements */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -56,7 +56,7 @@
 		AA000000AA000000AA000004 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA000000AA000000AA000014 /* MetScreensaver.saver */,
+				AA000000AA000000AA000014 /* MetSaver.saver */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,9 +72,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA000000AA000000AA000040 /* MetScreensaver */ = {
+		AA000000AA000000AA000040 /* MetSaver */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA000000AA000000AA000061 /* Build configuration list for PBXNativeTarget "MetScreensaver" */;
+			buildConfigurationList = AA000000AA000000AA000061 /* Build configuration list for PBXNativeTarget "MetSaver" */;
 			buildPhases = (
 				AA000000AA000000AA000030 /* Sources */,
 				AA000000AA000000AA000031 /* Frameworks */,
@@ -84,9 +84,9 @@
 			);
 			dependencies = (
 			);
-			name = MetScreensaver;
-			productName = MetScreensaver;
-			productReference = AA000000AA000000AA000014 /* MetScreensaver.saver */;
+			name = MetSaver;
+			productName = MetSaver;
+			productReference = AA000000AA000000AA000014 /* MetSaver.saver */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -99,7 +99,7 @@
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 			};
-			buildConfigurationList = AA000000AA000000AA000060 /* Build configuration list for PBXProject "MetScreensaver" */;
+			buildConfigurationList = AA000000AA000000AA000060 /* Build configuration list for PBXProject "MetSaver" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -112,7 +112,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA000000AA000000AA000040 /* MetScreensaver */,
+				AA000000AA000000AA000040 /* MetSaver */,
 			);
 		};
 /* End PBXProject section */
@@ -133,7 +133,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000000AA000000AA000020 /* MetAPI.swift in Sources */,
-				AA000000AA000000AA000021 /* MetScreensaverView.swift in Sources */,
+				AA000000AA000000AA000021 /* MetSaverView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,14 +224,14 @@
 		AA000000AA000000AA000052 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MetScreensaver.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MetSaver.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miles.MetScreensaver;
-				PRODUCT_NAME = MetScreensaver;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miles.MetSaver;
+				PRODUCT_NAME = MetSaver;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = saver;
@@ -241,14 +241,14 @@
 		AA000000AA000000AA000053 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MetScreensaver.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MetSaver.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miles.MetScreensaver;
-				PRODUCT_NAME = MetScreensaver;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miles.MetSaver;
+				PRODUCT_NAME = MetSaver;
 				SKIP_INSTALL = NO;
 				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = saver;
@@ -258,7 +258,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA000000AA000000AA000060 /* Build configuration list for PBXProject "MetScreensaver" */ = {
+		AA000000AA000000AA000060 /* Build configuration list for PBXProject "MetSaver" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA000000AA000000AA000050 /* Debug */,
@@ -267,7 +267,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA000000AA000000AA000061 /* Build configuration list for PBXNativeTarget "MetScreensaver" */ = {
+		AA000000AA000000AA000061 /* Build configuration list for PBXNativeTarget "MetSaver" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA000000AA000000AA000052 /* Debug */,

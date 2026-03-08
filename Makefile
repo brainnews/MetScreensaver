@@ -1,18 +1,18 @@
 BUILD_DIR    = build
-SAVER_NAME   = MetScreensaver.saver
+SAVER_NAME   = MetSaver.saver
 SAVER_PATH   = $(BUILD_DIR)/Release/$(SAVER_NAME)
 INSTALL_DIR  = $(HOME)/Library/Screen Savers
 INSTALL_PATH = $(INSTALL_DIR)/$(SAVER_NAME)
 
-DMG_NAME     = MetScreensaver.dmg
+DMG_NAME     = MetSaver.dmg
 DMG_PATH     = $(BUILD_DIR)/$(DMG_NAME)
 
 .PHONY: build install dmg open clean
 
 build:
 	xcodebuild \
-		-project MetScreensaver.xcodeproj \
-		-target MetScreensaver \
+		-project MetSaver.xcodeproj \
+		-target MetSaver \
 		-configuration Release \
 		SYMROOT=$(PWD)/$(BUILD_DIR) \
 		build
@@ -26,7 +26,7 @@ install: build
 	@echo "Installed to $(INSTALL_PATH)"
 
 dmg: build
-	hdiutil create -volname "MetScreensaver" \
+	hdiutil create -volname "MetSaver" \
 		-srcfolder "$(SAVER_PATH)" \
 		-ov -format UDZO \
 		"$(DMG_PATH)"

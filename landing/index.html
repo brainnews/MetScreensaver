@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetScreensaver — The Met on your Mac</title>
+  <meta name="description" content="A free macOS screensaver that cycles through highlighted artworks from The Metropolitan Museum of Art with Ken Burns animations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a96e;
+      --gold-dim: #a07840;
+      --bg: #0a0a0a;
+      --bg2: #111;
+      --bg3: #181818;
+      --text: #e8e0d0;
+      --text-dim: #9a8f80;
+      --border: rgba(201,169,110,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Georgia, 'Times New Roman', serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ─────────────────────────────────────────────── */
+
+    .hero {
+      position: relative;
+      height: 100svh;
+      min-height: 600px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Two-layer crossfade system */
+    .preview-layer {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      will-change: opacity, transform;
+      transition: opacity 1.5s ease-in-out;
+    }
+    .preview-layer.hidden { opacity: 0; }
+    .preview-layer.visible { opacity: 1; }
+
+    :root { --kb-scale: 1.05; }
+
+    /* Pan fallback keyframes — used only when cover produces no overflow in the pan axis */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes kb-fallback-h {
+        from { transform: scale(var(--kb-scale)) translateX(var(--pan-from, 2.5%)); }
+        to   { transform: scale(var(--kb-scale)) translateX(var(--pan-to,  -2.5%)); }
+      }
+      @keyframes kb-fallback-v {
+        from { transform: scale(var(--kb-scale)) translateY(var(--pan-from, 2.5%)); }
+        to   { transform: scale(var(--kb-scale)) translateY(var(--pan-to,  -2.5%)); }
+      }
+    }
+
+    /* Top vignette */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 30%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Artwork metadata overlay — bottom-left */
+    .artwork-meta {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      max-width: 350px;
+      padding: 28px 32px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .artwork-meta .art-title {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,1);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 1px;
+      transition: opacity 1.5s ease-in-out;
+    }
+    .artwork-meta .art-artist {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 1px;
+      transition: opacity 1.5s ease-in-out;
+    }
+    .artwork-meta .art-info {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.75);
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    /* Hero content — centered */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    .hero-title {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: clamp(48px, 7vw, 86px);
+      font-weight: 400;
+      line-height: 1.02;
+      color: #fff;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+      margin-bottom: 36px;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 210, 104, 0.7);
+      color: #120a07;
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: clamp(22px, 2.2vw, 28px);
+      font-style: italic;
+      font-weight: 400;
+      height: 60px;
+      gap: 8px;
+      padding: 0 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      border: 1px solid #be9239;
+      backdrop-filter: blur(9.5px);
+      -webkit-backdrop-filter: blur(9.5px);
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover {
+      background: rgba(255, 210, 104, 0.85);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .version-badge {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+    .badge {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #fff;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid #c6c6c6;
+      backdrop-filter: blur(9.5px);
+      -webkit-backdrop-filter: blur(9.5px);
+    }
+
+    /* Loading state — sits inside artwork-meta at bottom-left */
+    .hero-loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 14px;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: rgba(255,255,255,0.5);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Scroll hint */
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.35);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .scroll-hint svg { animation: bounce 2s ease-in-out infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    @media (max-width: 680px) {
+      :root { --kb-scale: 1.575; } /* 1.05 × 1.5 — maintains bleed at 1.5× zoom */
+
+      .scroll-hint {
+        left: auto;
+        right: 20px;
+        transform: none;
+        align-items: flex-end;
+      }
+      .scroll-hint span { display: none; }
+
+      .preview-layer { transform: scale(1.5); }
+      .hero-title { font-size: clamp(36px, 10vw, 56px); }
+    }
+
+    /* ── FEATURES ─────────────────────────────────────────── */
+
+    section { padding: 100px 24px; }
+
+    .section-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 400;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 16px;
+      max-width: 540px;
+      margin: 0 auto 64px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 680px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      padding: 40px 32px;
+      border-right: 1px solid var(--border);
+    }
+    .feature-card:last-child { border-right: none; }
+
+    @media (max-width: 680px) {
+      .feature-card {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .feature-card:last-child { border-bottom: none; }
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(201,169,110,0.1);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: var(--gold);
+    }
+
+    .feature-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .feature-name { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .download-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .download-box .apple-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      opacity: 0.7;
+    }
+
+    .download-box h3 {
+      font-size: 22px;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .download-box p {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+    }
+
+    .download-box .btn-primary {
+      font-style: normal;
+      font-size: 15px;
+      gap: 10px;
+      height: auto;
+      padding: 14px 24px;
+    }
+
+    .install-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin: 32px 0 24px;
+      text-align: left;
+    }
+
+    .install-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 0 24px;
+      border-right: 1px solid var(--border);
+    }
+    .install-step:first-child { padding-left: 0; }
+    .install-step:last-child  { padding-right: 0; border-right: none; }
+
+    .install-step .step-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(201,169,110,0.12);
+      border: 1px solid rgba(201,169,110,0.25);
+      color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-step p {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin: 0;
+    }
+    .install-step p strong { color: var(--text); }
+    .install-step p a { color: var(--gold); text-decoration: none; }
+    .install-step p a:hover { text-decoration: underline; }
+
+    @media (max-width: 680px) {
+      .install-row {
+        flex-direction: column;
+        gap: 24px;
+      }
+      .install-step {
+        padding: 0 0 24px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .install-step:last-child { border-bottom: none; padding-bottom: 0; }
+    }
+
+    .download-badges {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 0;
+    }
+
+    .badge-gold {
+      background: rgba(201,169,110,0.15) !important;
+      color: var(--gold) !important;
+      border-color: rgba(201,169,110,0.3) !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif !important;
+      font-size: 11px !important;
+      height: auto !important;
+      padding: 3px 8px !important;
+      border-radius: 4px !important;
+      backdrop-filter: none !important;
+    }
+    .badge-dim {
+      background: rgba(255,255,255,0.07) !important;
+      color: rgba(255,255,255,0.5) !important;
+      border-color: rgba(255,255,255,0.1) !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif !important;
+      font-size: 11px !important;
+      height: auto !important;
+      padding: 3px 8px !important;
+      border-radius: 4px !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Gatekeeper tabs */
+    .gk-section h3 {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      text-align: center;
+    }
+
+    .tabs {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tab-buttons {
+      display: flex;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      border-right: 1px solid var(--border);
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .tab-btn.active { color: var(--gold); background: rgba(201,169,110,0.06); }
+
+    .tab-panel {
+      display: none;
+      padding: 32px;
+      background: var(--bg2);
+    }
+    .tab-panel.active { display: block; }
+
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .steps li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(201,169,110,0.12);
+      border: 1px solid rgba(201,169,110,0.25);
+      color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .code-block {
+      margin-top: 16px;
+      background: #0d0d0d;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .code-block code {
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      font-size: 13px;
+      color: #a8d8a8;
+      flex: 1;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+    }
+    .copy-btn.copied {
+      color: #6dbf6d;
+      border-color: rgba(109,191,109,0.3);
+    }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+    }
+
+    .footer-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .footer-inner p {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      line-height: 1.7;
+    }
+
+    .footer-inner a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .footer-inner a:hover { text-decoration: underline; }
+
+    .footer-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 8px;
+    }
+
+    /* ── SCROLL ANIMATIONS ────────────────────────────────── */
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Stagger children */
+    .stagger > * { transition-delay: calc(var(--i, 0) * 0.1s); }
+  </style>
+</head>
+<body>
+
+<!-- ── HERO ───────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="preview-layer hidden" id="layer-a"></div>
+  <div class="preview-layer hidden" id="layer-b"></div>
+
+  <div class="artwork-meta" id="artwork-meta">
+    <div class="hero-loading" id="hero-loading">
+      <div class="spinner"></div>
+      Loading artwork from The Met…
+    </div>
+    <div class="art-title" id="art-title"></div>
+    <div class="art-artist" id="art-artist"></div>
+    <div class="art-info" id="art-info"></div>
+  </div>
+
+  <div class="hero-content">
+    <h1 class="hero-title">The Unofficial<br>Met Screensaver</h1>
+    <div class="hero-cta">
+      <a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.1/MetScreensaver.dmg"
+         class="btn-primary" id="download-btn">Download now</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ── GET STARTED ──────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-inner">
+    <h2 class="section-title fade-in">Slow down, look at art.</h2>
+    <p class="section-sub fade-in">Over 2,500 highlighted works from The Met's permanent collection, beautifully animated and always current.</p>
+
+    <div class="download-box fade-in" id="install">
+      <h3 id="install-heading">Download MetScreensaver</h3>
+      <p id="install-sub">Install in three easy steps.</p>
+
+      <div class="install-row" id="install-row">
+        <div class="install-step" id="install-step-download">
+          <span class="step-num">1</span>
+          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.1/MetScreensaver.dmg">Download MetScreensaver.dmg</a></p>
+        </div>
+        <div class="install-step">
+          <span class="step-num">2</span>
+          <p><strong>Double-click MetScreensaver.dmg</strong> — macOS will block it.</p>
+        </div>
+        <div class="install-step">
+          <span class="step-num">3</span>
+          <p>Dismiss the warning. Open <strong>System Settings → Privacy &amp; Security</strong>, scroll to Security, and click <strong>Open Anyway</strong>.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <p>
+      Artwork images and metadata provided by
+      <a href="https://www.metmuseum.org" target="_blank" rel="noopener">The Metropolitan Museum of Art</a>
+      via their
+      <a href="https://metmuseum.github.io" target="_blank" rel="noopener">Open Access API</a>.
+      All artworks are in the public domain.
+    </p>
+    <p>
+      <span class="footer-divider"></span>
+      Not affiliated with The Met
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Configuration (mirrors Swift constants) ────────────────
+  const SLIDE_INTERVAL   = 20000;   // 20s — MetScreensaverView.slideInterval
+  const FADE_DURATION_MS = 1500;    // 1.5s — NSAnimationContext duration
+  const ZOOM_FACTOR      = 1.08;    // ArtworkImageView zoomFactor
+  const PAN_DURATION_S   = SLIDE_INTERVAL / 1000;  // pan runs the full slide duration
+  const MET_BASE         = 'https://collectionapi.metmuseum.org/public/collection/v1';
+  const CACHE_KEY_IDS    = 'MetAPI.objectIDs';
+  const CACHE_KEY_DATE   = 'MetAPI.objectIDsDate';
+  const CACHE_TTL_MS     = 24 * 60 * 60 * 1000;
+
+  // ── State ──────────────────────────────────────────────────
+  let objectIDs         = null;
+  let usedIDs           = new Set();
+  let currentLayer      = 'a';  // which layer is front
+  let slideTimer        = null;
+  let preloadedArtwork  = null;
+  let preloadedImage    = null;
+  let isFirstSlide      = true;
+
+  const layerA    = document.getElementById('layer-a');
+  const layerB    = document.getElementById('layer-b');
+  const loading   = document.getElementById('hero-loading');
+  const metaEl    = document.getElementById('artwork-meta');
+  const titleEl   = document.getElementById('art-title');
+  const artistEl  = document.getElementById('art-artist');
+  const infoEl    = document.getElementById('art-info');
+
+  // ── API ────────────────────────────────────────────────────
+
+  async function fetchObjectIDs() {
+    if (objectIDs) return objectIDs;
+
+    // Check sessionStorage cache (mirrors UserDefaults cache in Swift)
+    try {
+      const saved = sessionStorage.getItem(CACHE_KEY_IDS);
+      const date  = sessionStorage.getItem(CACHE_KEY_DATE);
+      if (saved && date && (Date.now() - Number(date)) < CACHE_TTL_MS) {
+        objectIDs = JSON.parse(saved);
+        return objectIDs;
+      }
+    } catch (_) {}
+
+    const res  = await fetch(`${MET_BASE}/search?isHighlight=true&hasImages=true&q=*`);
+    const data = await res.json();
+    objectIDs  = data.objectIDs || [];
+
+    try {
+      sessionStorage.setItem(CACHE_KEY_IDS, JSON.stringify(objectIDs));
+      sessionStorage.setItem(CACHE_KEY_DATE, String(Date.now()));
+    } catch (_) {}
+
+    return objectIDs;
+  }
+
+  async function fetchArtwork(id) {
+    const res  = await fetch(`${MET_BASE}/objects/${id}`);
+    const obj  = await res.json();
+    const imgURL = (obj.primaryImage && obj.primaryImage.length > 0)
+      ? obj.primaryImage
+      : (obj.primaryImageSmall && obj.primaryImageSmall.length > 0)
+        ? obj.primaryImageSmall
+        : null;
+    if (!imgURL) return null;
+
+    return {
+      title:      obj.title      || 'Untitled',
+      artist:     obj.artistDisplayName || '',
+      date:       obj.objectDate || '',
+      department: obj.department || '',
+      imageURL:   imgURL,
+    };
+  }
+
+  async function fetchRandomArtwork() {
+    const ids = await fetchObjectIDs();
+    if (!ids.length) return null;
+
+    // Shuffle and try up to 5 IDs, preferring unseen ones (mirrors Swift prefix(3) retry)
+    const shuffled = [...ids].sort(() => Math.random() - 0.5);
+    const unseen   = shuffled.filter(id => !usedIDs.has(id));
+    const candidates = (unseen.length > 0 ? unseen : shuffled).slice(0, 5);
+
+    for (const id of candidates) {
+      try {
+        const artwork = await fetchArtwork(id);
+        if (artwork) {
+          usedIDs.add(id);
+          // Reset seen set when we've gone through most IDs
+          if (usedIDs.size > ids.length * 0.8) usedIDs.clear();
+          return artwork;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  // ── Image preloading ───────────────────────────────────────
+
+  function preloadImage(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload  = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  }
+
+  async function startPrefetch() {
+    preloadedArtwork = null;
+    preloadedImage   = null;
+    try {
+      const artwork = await fetchRandomArtwork();
+      if (!artwork) return;
+      const img = await preloadImage(artwork.imageURL);
+      preloadedArtwork = artwork;
+      preloadedImage   = img;
+    } catch (_) {}
+  }
+
+  // ── Pan animation ──────────────────────────────────────────
+
+  const reducedMotion  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobileBreak  = window.matchMedia('(max-width: 680px)').matches;
+  const PAN_OPTS = { duration: PAN_DURATION_S * 1000, easing: 'ease-in-out', fill: 'forwards' };
+
+  function applyKenBurns(layer, img) {
+    layer.getAnimations().forEach(a => a.cancel());
+    layer.style.animation = '';
+    if (reducedMotion || !img) return;
+
+    const vpW    = layer.offsetWidth;
+    const vpH    = layer.offsetHeight;
+    const isPort = img.naturalHeight > img.naturalWidth;
+
+    // How large does background-size:cover render the image?
+    const coverScale = Math.max(vpW / img.naturalWidth, vpH / img.naturalHeight);
+    const overflowW  = img.naturalWidth  * coverScale - vpW;
+    const overflowH  = img.naturalHeight * coverScale - vpH;
+
+    const flip = Math.random() < 0.5;
+
+    if (isPort && overflowH > 10) {
+      // Portrait with vertical overflow: animate background-position-y through 70% of range
+      const fromPos = `50% ${flip ? '85%' : '15%'}`;
+      const toPos   = `50% ${flip ? '15%' : '85%'}`;
+      layer.animate(
+        [{ backgroundPosition: fromPos }, { backgroundPosition: toPos }],
+        PAN_OPTS
+      );
+    } else if (!isPort && overflowW > 10) {
+      // Landscape with horizontal overflow: animate background-position-x through 70% of range
+      const fromPos = `${flip ? '85%' : '15%'} 50%`;
+      const toPos   = `${flip ? '15%' : '85%'} 50%`;
+      layer.animate(
+        [{ backgroundPosition: fromPos }, { backgroundPosition: toPos }],
+        PAN_OPTS
+      );
+    } else {
+      // Fallback: no meaningful overflow in the pan axis — transform pan
+      // On mobile, scale(1.575) gives ~28% bleed so we can use a larger pan amount
+      const panAmt = isMobileBreak ? '15%' : '2.5%';
+      layer.style.setProperty('--pan-from', flip ?  panAmt : `-${panAmt}`);
+      layer.style.setProperty('--pan-to',   flip ? `-${panAmt}` :  panAmt);
+      void layer.offsetHeight;
+      layer.style.animation = `${isPort ? 'kb-fallback-v' : 'kb-fallback-h'} ${PAN_DURATION_S}s ease-in-out forwards`;
+    }
+  }
+
+  // ── Crossfade display ──────────────────────────────────────
+
+  function setLayerContent(layer, artwork, img) {
+    layer.style.backgroundImage = `url("${CSS.escape(artwork.imageURL).replace(/^"|"$/g, '')}")`;
+    // Direct URL assignment is safe — it's from the Met API response
+    layer.style.backgroundImage = `url(${JSON.stringify(artwork.imageURL)})`;
+    applyKenBurns(layer, img);
+  }
+
+  function updateMeta(artwork) {
+    titleEl.textContent  = artwork.title;
+    artistEl.textContent = artwork.artist || 'Unknown Artist';
+    const parts = [];
+    if (artwork.date)       parts.push(artwork.date);
+    if (artwork.department) parts.push(artwork.department);
+    infoEl.textContent = parts.join('  ·  ');
+  }
+
+  function displayArtwork(artwork, img) {
+    const front = currentLayer === 'a' ? layerA : layerB;
+    const back  = currentLayer === 'a' ? layerB : layerA;
+
+    setLayerContent(back, artwork, img);
+
+    if (isFirstSlide) {
+      // No crossfade on first slide — just show immediately
+      back.classList.remove('hidden');
+      back.classList.add('visible');
+      loading.style.display = 'none';
+      updateMeta(artwork);
+      metaEl.style.opacity = '1';
+      isFirstSlide = false;
+      currentLayer = currentLayer === 'a' ? 'b' : 'a';
+      startPrefetch();
+      return;
+    }
+
+    // Crossfade: fade out meta, swap layers, fade in meta
+    metaEl.style.transition = `opacity ${FADE_DURATION_MS}ms ease-in-out`;
+    metaEl.style.opacity = '0';
+
+    setTimeout(() => {
+      updateMeta(artwork);
+
+      back.classList.remove('hidden');
+      back.classList.add('visible');
+      front.classList.remove('visible');
+      front.classList.add('hidden');
+
+      metaEl.style.opacity = '1';
+      currentLayer = currentLayer === 'a' ? 'b' : 'a';
+
+      startPrefetch();
+    }, FADE_DURATION_MS);
+  }
+
+  async function showNextSlide() {
+    let artwork = preloadedArtwork;
+    let img     = preloadedImage;
+
+    if (artwork) {
+      preloadedArtwork = null;
+      preloadedImage   = null;
+      displayArtwork(artwork, img);
+    } else {
+      // Prefetch lost the race — fetch now
+      try {
+        artwork = await fetchRandomArtwork();
+        if (!artwork) return;
+        img = await preloadImage(artwork.imageURL);
+        displayArtwork(artwork, img);
+      } catch (_) {}
+    }
+  }
+
+  async function init() {
+    // Start first slide
+    await showNextSlide();
+
+    slideTimer = setInterval(showNextSlide, SLIDE_INTERVAL);
+  }
+
+  init().catch(console.error);
+
+  // Track whether user clicked the hero download button
+  let clickedHeroDownload = false;
+
+  const installHeading = document.getElementById('install-heading');
+  const installSub     = document.getElementById('install-sub');
+
+  function setInstallText(downloaded) {
+    const downloadStep = document.getElementById('install-step-download');
+    if (downloaded) {
+      installHeading.textContent  = 'Thanks for downloading';
+      installSub.textContent      = 'Let\'s get started';
+      downloadStep.style.display  = 'none';
+      // Renumber remaining steps to 1, 2
+      document.querySelectorAll('#install-row .install-step:not(#install-step-download) .step-num')
+        .forEach((el, i) => { el.textContent = i + 1; });
+    } else {
+      installHeading.textContent  = 'Download the Unofficial Met Screensaver';
+      installSub.textContent      = 'Follow the steps below to get started';
+      downloadStep.style.display  = '';
+      // Restore original step numbers
+      document.querySelectorAll('#install-row .install-step .step-num')
+        .forEach((el, i) => { el.textContent = i + 1; });
+    }
+  }
+
+  const heroBtn = document.getElementById('download-btn');
+  const isMobile = window.matchMedia('(max-width: 680px)').matches;
+
+  if (isMobile && navigator.share) {
+    // Replace with native share sheet on mobile
+    heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Send to Mac`;
+    heroBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigator.share({
+        title: 'The Unofficial Met Screensaver',
+        text: 'A free macOS screensaver cycling through highlighted artworks from The Met.',
+        url: window.location.href,
+      }).catch(() => {});
+    });
+  } else {
+    if (/Win/i.test(navigator.platform) || /Win/i.test(navigator.userAgent)) {
+      heroBtn.textContent = 'Download for macOS';
+    }
+    heroBtn.addEventListener('click', () => {
+      clickedHeroDownload = true;
+      setTimeout(() => {
+        setInstallText(true);
+        document.getElementById('install').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    });
+  }
+
+  // When install box becomes visible without having clicked download, show the alternate text
+  const installObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !clickedHeroDownload) {
+        setInstallText(false);
+      }
+    });
+  }, { threshold: 0.2 });
+  installObserver.observe(document.getElementById('install'));
+
+  // ── Scroll-triggered fade-ins ──────────────────────────────
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+})();
+</script>
+
+</body>
+</html>

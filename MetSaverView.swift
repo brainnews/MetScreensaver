@@ -157,8 +157,8 @@ private class ArtworkImageView: NSView {
 
 // MARK: - Screensaver View
 
-@objc(MetScreensaverView)
-class MetScreensaverView: ScreenSaverView {
+@objc(MetSaverView)
+class MetSaverView: ScreenSaverView {
 
     private static let slideInterval: TimeInterval = 20
 
@@ -199,7 +199,7 @@ class MetScreensaverView: ScreenSaverView {
 
         // 1. Artwork view
         artworkView = ArtworkImageView(frame: bounds)
-        artworkView.panDuration = MetScreensaverView.slideInterval - 2
+        artworkView.panDuration = MetSaverView.slideInterval - 2
         artworkView.autoresizingMask = [.width, .height]
         addSubview(artworkView)
 
@@ -290,7 +290,7 @@ class MetScreensaverView: ScreenSaverView {
         super.startAnimation()
         fetchAndDisplay()
         timer = Timer.scheduledTimer(
-            timeInterval: MetScreensaverView.slideInterval,
+            timeInterval: MetSaverView.slideInterval,
             target: self,
             selector: #selector(timerFired),
             userInfo: nil,
