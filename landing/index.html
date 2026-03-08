@@ -660,7 +660,7 @@
   <div class="hero-content">
     <h1 class="hero-title">The Unofficial<br>Met Screensaver</h1>
     <div class="hero-cta">
-      <a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.dmg"
+      <a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip"
          class="btn-primary" id="download-btn">Download now</a>
     </div>
   </div>
@@ -681,12 +681,12 @@
 
     <div class="download-box fade-in" id="install">
       <h3 id="install-heading">Download MetSaver</h3>
-      <p id="install-sub">Install in four easy steps.</p>
+      <p id="install-sub">Install in three easy steps.</p>
 
       <div class="install-row" id="install-row">
         <div class="install-step" id="install-step-download">
           <span class="step-num">1</span>
-          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.dmg">Download MetSaver.dmg</a></p>
+          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip">Download MetSaver.dmg</a></p>
         </div>
         <div class="install-step">
           <span class="step-num">2</span>
@@ -989,7 +989,7 @@
     const downloadStep = document.getElementById('install-step-download');
     if (downloaded) {
       installHeading.textContent  = 'Thanks for downloading';
-      installSub.textContent      = 'Three steps to go.';
+      installSub.textContent      = 'Two steps to go.';
       downloadStep.style.display  = 'none';
       // Renumber remaining steps to 1, 2
       document.querySelectorAll('#install-row .install-step:not(#install-step-download) .step-num')

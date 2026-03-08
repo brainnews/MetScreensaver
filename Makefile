@@ -4,10 +4,10 @@ SAVER_PATH   = $(BUILD_DIR)/Release/$(SAVER_NAME)
 INSTALL_DIR  = $(HOME)/Library/Screen Savers
 INSTALL_PATH = $(INSTALL_DIR)/$(SAVER_NAME)
 
-DMG_NAME     = MetSaver.dmg
-DMG_PATH     = $(BUILD_DIR)/$(DMG_NAME)
+ZIP_NAME     = MetSaver.zip
+ZIP_PATH     = $(BUILD_DIR)/$(ZIP_NAME)
 
-.PHONY: build install dmg open clean
+.PHONY: build install zip open clean
 
 build:
 	xcodebuild \
@@ -25,12 +25,9 @@ install: build
 	-killall legacyScreenSaver 2>/dev/null
 	@echo "Installed to $(INSTALL_PATH)"
 
-dmg: build
-	hdiutil create -volname "MetSaver" \
-		-srcfolder "$(SAVER_PATH)" \
-		-ov -format UDZO \
-		"$(DMG_PATH)"
-	@echo "Created $(DMG_PATH)"
+zip: build
+	cd "$(BUILD_DIR)/Release" && zip -r "../$(ZIP_NAME)" "$(SAVER_NAME)"
+	@echo "Created $(ZIP_PATH)"
 
 open:
 	open "x-apple.systempreferences:com.apple.preference.desktopscreensaver"
