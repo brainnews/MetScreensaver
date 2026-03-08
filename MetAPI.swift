@@ -20,8 +20,8 @@ actor MetAPI {
     private let base = "https://collectionapi.metmuseum.org/public/collection/v1"
 
     // Shorter timeouts to fail fast rather than hanging for 60 s
-    private let urlSession: URLSession = {
-        let cfg = URLSessionConfiguration.default
+    let urlSession: URLSession = {
+        let cfg = URLSessionConfiguration.ephemeral
         cfg.timeoutIntervalForRequest  = 20
         cfg.timeoutIntervalForResource = 60
         return URLSession(configuration: cfg)

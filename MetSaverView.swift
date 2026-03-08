@@ -361,7 +361,7 @@ class MetSaverView: ScreenSaverView {
     }
 
     private func loadImage(from url: URL) async -> NSImage? {
-        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return nil }
+        guard let (data, _) = try? await MetAPI.shared.urlSession.data(from: url) else { return nil }
         return NSImage(data: data)
     }
 
