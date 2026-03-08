@@ -638,6 +638,21 @@
 
     /* Stagger children */
     .stagger > * { transition-delay: calc(var(--i, 0) * 0.1s); }
+
+    /* ── INSTALL SCREENSHOTS ──────────────────────────────── */
+    .install-screenshot {
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: block;
+    }
+    .install-screenshot.dialog {
+      max-width: 220px;
+    }
+    .install-screenshot.banner {
+      max-width: 100%;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
   </style>
 </head>
 <body>
@@ -686,19 +701,22 @@
       <div class="install-row" id="install-row">
         <div class="install-step" id="install-step-download">
           <span class="step-num">1</span>
-          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip">Download MetSaver.zip</a>, unzip it, and double-click <strong>MetSaver.saver</strong> — macOS will prompt you to install.</p>
+          <p><a href="https://github.com/brainnews/MetScreensaver/releases/download/v1.2/MetSaver.zip">Download MetSaver.zip</a>, unzip it, and double-click <strong>MetSaver.saver</strong> — macOS will ask if you want to install it. Click <strong>Install</strong>.</p>
         </div>
         <div class="install-step">
           <span class="step-num">2</span>
-          <p>Click <strong>Install</strong> — macOS opens Screen Saver settings automatically.</p>
+          <p>macOS will alert you that it couldn't verify MetSaver.saver is free of malware. Click <strong>Done</strong> to dismiss it.</p>
+          <img src="alert-open.png" alt="macOS security alert for MetSaver.saver" class="install-screenshot dialog">
         </div>
         <div class="install-step">
           <span class="step-num">3</span>
-          <p>macOS will alert you that it couldn't verify MetSaver.saver — click <strong>Done</strong>. Then open <strong>System Settings → Privacy &amp; Security</strong>, scroll down to the Security section, and click <strong>Open Anyway</strong>.</p>
+          <p>Open <strong>System Settings → Privacy &amp; Security</strong> and scroll down until you see the MetSaver blocked notice. Click <strong>Open Anyway</strong>.</p>
+          <img src="alert-open-anyway.png" alt="Open Anyway button in Privacy &amp; Security settings" class="install-screenshot banner">
         </div>
         <div class="install-step">
           <span class="step-num">4</span>
-          <p>Return to <strong>System Settings → Screen Saver</strong> and click <strong>MetSaver</strong> to select it.</p>
+          <p>Return to <strong>System Settings → Screen Saver</strong>. macOS may show one more alert — click <strong>Done</strong>, then click <strong>MetSaver</strong> to select it.</p>
+          <img src="alert-not-opened.png" alt="Second macOS security alert for MetSaver.saver" class="install-screenshot dialog">
         </div>
       </div>
 
